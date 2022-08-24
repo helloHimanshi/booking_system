@@ -24,7 +24,5 @@ Route::get('/get_cinema', [BookingController::class, 'getCinema']);
 Route::get('/book_show/{id?}', function () {
     return view('book_show');
 })->name('book_show');
-Route::get('/select_seat', function () {
-    return redirect('/booking/dashboard');
-});
-Route::view('/booking/dashboard', 'seat_booking');
+Route::get('/select_seat', [BookingController::class, 'getTotalSeats']);
+Route::post('/select_seat', [BookingController::class, 'getAvailableSeats']);

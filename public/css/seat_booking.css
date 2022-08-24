@@ -5,22 +5,6 @@
     font-size: 16px;
   }
 
-  body{
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    height: 100vh;
-  }
-  
-  .form {
-    background-color: #15172b;
-    border-radius: 20px;
-    box-sizing: border-box;
-    height: 500px;
-    padding: 20px 100px;
-    width: 85%;
-  }
-
   .title {
     color: #eee;
     font-family: sans-serif;
@@ -141,7 +125,7 @@
           box-shadow: none;
           cursor: not-allowed;
         }
-    label {    
+      input[type=checkbox]:checked label {    
       display: block;
       position: relative;    
       width: 100%;    
@@ -157,7 +141,7 @@
       animation-fill-mode: both;
     }
       
-    label:before {
+    input[type=checkbox]:checked label:before {
         content: "";
         position: absolute;
         width: 75%;
@@ -168,7 +152,7 @@
         background: rgba(255,255,255,.4);
         border-radius: 3px;
       }
-      label:hover {
+      input[type=checkbox]:checked label:hover {
         cursor: pointer;
         box-shadow: 0 0 0px 2px #5C6AFF;
       }
