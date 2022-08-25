@@ -18,6 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+/**
+* Apis for booking movie.
+*
+*/
 Route::get('/system_booking', [BookingController::class, 'getCity']);
 Route::get('/get_movie', [BookingController::class, 'getMovie']);
 Route::get('/get_cinema', [BookingController::class, 'getCinema']);
@@ -25,4 +29,11 @@ Route::get('/book_show/{id?}', function () {
     return view('book_show');
 })->name('book_show');
 Route::get('/select_seat', [BookingController::class, 'getTotalSeats']);
-Route::post('/select_seat', [BookingController::class, 'getAvailableSeats']);
+Route::group(['middleware' => 'prevent-back-history'],function(){
+	Auth::routes();
+    Route::post('/select_seat', [BookingController::class, 'getAvailableSeats']);
+});
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+

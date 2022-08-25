@@ -12,6 +12,10 @@ use App\Models\AvailableSeat;
 
 class BookingController extends Controller
 {
+    /**
+     * Fetchs list of cities.
+     *
+     */
     public function getCity(){
         $cities = City::select('*')
             ->get();
@@ -26,6 +30,10 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * Fetchs list of movies displayed in the selected city.
+     *
+     */
     public function getMovie(Request $request){
         $city_id = $request->input('cityId');
         $movies = Movie::where('City_id', $city_id) 
@@ -34,6 +42,10 @@ class BookingController extends Controller
         return $movies;
     }
 
+    /**
+     * lists of cinemas running the selected movie show for the selected city.
+     *
+     */
     public function getCinema(Request $request){
         $city_id = $request->input('cityId');
         $movie_id = $request->input('movieId');
@@ -49,19 +61,20 @@ class BookingController extends Controller
         return $cinemas;
     }
 
+    /**
+     * List of total seats in the selected cinema hall.
+     *
+     */
     public function getTotalSeats(Request $request){
         $city_id = $request->input('cityId');
         $movie_id = $request->input('movieId');
         $cinema_id = $request->input('cinemaId');
-        $seats = Seat::all();
-        $occupied_seats = Seat::where('seats.city_id', $city_id)
+        $seats = Seat::where('seats.city_id', $city_id)
             ->where('seats.cinema_id', $cinema_id)
             ->leftJoin('available_seats', 'available_seats.seat_id', 'seats.id')
-            ->where('available_seats.city_id', $city_id)
-            ->where('available_seats.cinema_id', $cinema_id)
-            ->select('seats.id', 'seats.seat_name')
+            ->select('available_seats.seat_id', 'available_seats.id' ,'seats.*')
+            ->orderBy('seats.seat_name')
             ->get();
-        // dd($occupied_seats->toArray());
         $seat_arr =[];
         foreach($seats as $seat){
             $seat_log = substr($seat->seat_name, 0, 1);
@@ -69,18 +82,33 @@ class BookingController extends Controller
         }
         return  view('seats_available', [
             'seats' => $seat_arr,
-            'occupied_seats' => $occupied_seats,
             'city_id' => $city_id,
             'movie_id' => $movie_id,
             'cinema_id' => $cinema_id
         ]);
     }
 
+    /**
+     * Records the booked seats.
+     *
+     */
     public function getAvailableSeats(Request $request){
+        $validated = $request->validate([
+            'city' => 'required',
+            'movie' => 'required',
+            'cinema' => 'required',
+            'username' => 'required',
+            'checkbox' => 'required|array|min:1'
+        ],
+        [
+            'checkbox.required' => 'Could not processed with your request as atleast one seat is required to be selected for booking show.'
+        ]);
+          
         $city_id = $request->input('city');
         $movie_id = $request->input('movie');
         $cinema_id = $request->input('cinema');
         $username = $request->input('username');
+        $seats_selected = [];
         foreach($request->checkbox as $seat_id){
             $available_seats = new AvailableSeat;
             $available_seats->seat_id = $seat_id;
@@ -89,11 +117,24 @@ class BookingController extends Controller
             $available_seats->movie_id = $movie_id;
             $available_seats->city_id = $city_id;
             $available_seats->cinema_id = $cinema_id;
+            $seat_occupied = Seat::where('id', $seat_id)
+                ->value('seat_name');
+            array_push($seats_selected, $seat_occupied);
             $available_seats->save();
         }
-        return response()->json([
-            'message' => 'Seats booked successfully.',
-            'status' => 'success'
+        $movie = Movie::where('id', $movie_id)
+            ->value('movie_name');
+        $cinema = Cinema::where('id', $cinema_id)
+            ->select('Cinema_name', 'show_time')
+            ->first();
+        $city = City::where('id', $city_id)
+            ->value('name');
+        return view('ticket_dashboard', [
+            'city' => $city,
+            'movie' => $movie,
+            'cinema' => $cinema,
+            'username' => $username,
+            'seats_selected' => $seats_selected
         ]);
     }
 }

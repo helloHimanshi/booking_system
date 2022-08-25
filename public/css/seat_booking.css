@@ -109,18 +109,17 @@
       }
     
     input[type=checkbox]:disabled + label {
-        background: #dddddd;
-        text-indent: -9999px;
+        background: #dddddd !important;
         overflow: hidden;
     }
-    input[type=checkbox]:disabled + label:after {
+    /* input[type=checkbox]:disabled + label:after {
           content: "X";
           text-indent: 0;
           position: absolute;
           top: 4px;
           left: 50%;
           transform: translate(-50%, 0%);
-        }
+        } */
         input[type=checkbox]:disabled + label:hover {
           box-shadow: none;
           cursor: not-allowed;
@@ -234,4 +233,13 @@
   .rubberBand {
     -webkit-animation-name: rubberBand;
             animation-name: rubberBand;
+  }
+  .sample_seats{
+    height: 20px !important;
+    width: 20px !important;
+    text-align: center !important;
+  }
+
+  #available_seats_form .error{
+    color: red;
   }

@@ -13,33 +13,42 @@
     </head>
     <body>
     <div class="form">
+        <!-- Laravel validation error message -->
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
       <div class="mt-4 mb-4 title">Book Your Tickets</div>
       <div class="mt-4 mb-4">
-      <label class="subtitle">Select City</label>
-            <select id="city_id" class="input">
+        <label class="subtitle">Select City</label>
+            <select id="city_id" class="input" style="height:50px;">
                 <option value="" disabled selected>Select City</option>
-                @if($cities)
-                    @foreach($cities as $city)
-                        <option value="{{$city->id}}">
-                            {{$city->name}}
-                        </option>
-                    @endforeach
-                @endif
+                    @if($cities)
+                        @foreach($cities as $city)
+                            <option value="{{$city->id}}">
+                                {{$city->name}}
+                            </option>
+                        @endforeach
+                    @endif
             </select>
         </div>
         <div class="mt-4 mb-4">
-        <label class="subtitle">Select Movie</label>
+        <label id="movie_tag" class="subtitle">Select Movie</label>
         <div id="movie_id" class="d-flex justify-content-around">
-            @if($movies)
-                @foreach($movies as $movie)
-                <div value="{{$movie->id}}" class="input" onClick="confirm('Please Select the city first.')">
-                        {{$movie->movie_name}}
+            @foreach($movies as $movie)
+                <div value="{{$movie->id}}" class="input" onClick="confirm('Select City to book the show.')">
+                    {{$movie->movie_name}}
                 </div>
-                @endforeach
-            @endif
+            @endforeach
         </div>
         </div>
         <div class="mt-2 mb-4">
+            <label id="cinema_tag" class="subtitle" style="display:none;">Select Cinema</label>
             <div id="cinema_id" value="" class="input" style="display:none;">
             </div>
         </div>
@@ -48,7 +57,10 @@
         </div>
     </div>
     </body>
+    <!-- Script to run ajax -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <!-- Script to call jquery validate function -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
     <script>
         let checkMovies;
         let bookMovie;
@@ -56,6 +68,8 @@
             checkMovies =  function (movieId, cityId){
             console.log(movieId, cityId);
             $('#cinema_id').hide();
+            $('#cinema_tag').hide();
+            $('#available_seat_count').hide();
             $.ajax({
                 type:'GET',
                 url:"{{ url('/get_cinema') }}",
@@ -65,20 +79,25 @@
                 },
                 success:function(data){
                     
-            $('#cinema_id').show();
+                $('#cinema_id').show();
+                $('#cinema_tag').show();
                     let content = '';
-                    $.each(data, function(i, item) {
-                        console.log(item);
-                            content += ` ${item.Cinema_name}
-                            </br>
-                            ${item.show_time}
-                            </br>
-                            <button type="button" 
-                            class="btn btn-sm btn-light mt-2 mb-2" 
-                            onClick="bookMovie(${item.id}, ${item.movie_id}, ${item.city_id})">
-                                Book Show
-                            </button>`;
-                    });
+                    if(data.length == 0){
+                        content += `No Show Available`;
+                    } else {
+                        $.each(data, function(i, item) {
+                            console.log(item);
+                                content += ` ${item.Cinema_name}
+                                </br>
+                                ${item.show_time}
+                                </br>
+                                <button type="button" 
+                                class="btn btn-sm btn-light mt-2 mb-2" 
+                                onClick="bookMovie(${item.id}, ${item.movie_id}, ${item.city_id})">
+                                    Book Show
+                                </button> </br>`;
+                        });
+                    }
                     $('#cinema_id').html(content);
                 }
             });
@@ -113,31 +132,25 @@
                 data:{'cityId':cityId},
                 success:function(data){
                 $('#cinema_id').hide();
+                $('#cinema_tag').hide();
                 $('#available_seat_count').hide();
+                $('#movie_tag').hide();
                     let options = '';
-                    $.each(data, function(i, item) {
-                            options += `<div value=${item.id} class="input"> ${item.movie_name}
-                            </br>
-                            <button type="button" class="btn btn-sm btn-light mt-2 mb-2" onClick="checkMovies(${item.id}, ${cityId})">Check Show</button>     
-                            </div>`;
-                    });
+                    if(data.length == 0){
+                        options += `<div class="input">No Movie Available</div>`
+                    } else {
+                        $.each(data, function(i, item) {
+                                options += `<div value=${item.id} class="input"> ${item.movie_name}
+                                </br>
+                                <button type="button" class="btn btn-sm btn-light mt-2 mb-2" onClick="checkMovies(${item.id}, ${cityId})">Check Show</button>     
+                                </div>`;
+                        });
+                    }
+                    $('#movie_tag').show();
                     $('#movie_id').empty().html(options);
                 }
             });
         });
-        
-    // Script for validation
-    validate();
-    $('#username').change(validate);
     });
-
-    function validate(){
-        if ($('#username').val().length   >   0  ) {
-            $("input[type=submit]").prop("disabled", false);
-        }
-        else {
-            $("input[type=submit]").prop("disabled", true);
-        }
-    }
     </script>
 </html>
